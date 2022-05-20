@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using GlobalTypes;
 
 public class CharacterController2D : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class CharacterController2D : MonoBehaviour
     public LayerMask levelGeomLayerMask;
     public bool isSomethingBelow;
     public float groundCheckTimer = 0.1f;
+    public PlatformType platformType;
     private bool _disableGroundCheck;
 
     //raycast positions (0 - to the left, 1 - dead center, 2 - to the right)
@@ -98,16 +100,45 @@ public class CharacterController2D : MonoBehaviour
         //at this point, if we have any number of hits, we must have something below us
         if (numberOfGroundHits > 0)
         {
+            //most common scenario (90 - 95% of the time the middle ray is hitting a platform)
+            if (_raycastHits[1].collider)
+            {
+                platformType = DetermineGroundType(_raycastHits[1].collider);
+            }
+            else
+            {
+                //run a for loop to check for if the left or right rays are hitting a platform
+                for(int i = 0; i < _raycastHits.Length; i++)
+                {
+                    platformType = DetermineGroundType(_raycastHits[i].collider);
+                }
+
+            }
             isSomethingBelow = true;
         }
         else
         {
+            platformType = PlatformType.None;
             isSomethingBelow = false;
         }
 
     }
 
-    //helper debug method
+
+    #region Ground type check
+    private PlatformType DetermineGroundType(Collider2D collider)
+    {
+        if (collider.GetComponent<GroundEffector>())
+        {
+            return collider.GetComponent<GroundEffector>().platformType;
+        }
+        else
+        {
+            //means we are on default ground
+            return PlatformType.DefaultPlatform;
+        }
+    }
+    #endregion
 
     #region Temporary Ground check control
     public void DisableGroundCheck()
@@ -125,7 +156,7 @@ public class CharacterController2D : MonoBehaviour
 
     #endregion
 
-    #region Helper Methods
+    #region Debug Helper Methods
     private void DrawDebugRays(Vector2 direction, Color color)
     {
         for (int i = 0; i < _raycastPositions.Length; i++)

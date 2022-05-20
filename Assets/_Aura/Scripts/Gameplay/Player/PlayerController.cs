@@ -45,7 +45,8 @@ public class PlayerController : MonoBehaviour
         if (_characterController.isSomethingBelow)
         {
             isJumping = false;
-
+            _moveDirection.y = 0f;
+            _releaseJump=false;
             if (_startJump)
             {
                 _startJump = false;
