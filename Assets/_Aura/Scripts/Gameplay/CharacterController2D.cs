@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class CharacterController2D : MonoBehaviour
 {
@@ -6,6 +7,8 @@ public class CharacterController2D : MonoBehaviour
     public float raycastDistance = 0.4f;
     public LayerMask levelGeomLayerMask;
     public bool isSomethingBelow;
+    public float groundCheckTimer = 0.1f;
+    private bool _disableGroundCheck;
 
     //raycast positions (0 - to the left, 1 - dead center, 2 - to the right)
     private Vector2[] _raycastPositions = new Vector2[3];
@@ -17,6 +20,8 @@ public class CharacterController2D : MonoBehaviour
     private Vector2 _moveAmount;
     private Vector2 _currentPosition;
     private Vector2 _lastPosition;
+
+    //temporary ground check disabling flag
 
     private void Start()
     {
@@ -37,7 +42,11 @@ public class CharacterController2D : MonoBehaviour
         //zero out the _moveAmount ready for new input next frame
         _moveAmount = Vector2.zero;
 
-        CheckGrounded();
+        //Only check for ground if the disabled ground check flag is not on.
+        if (_disableGroundCheck == false)
+        {
+            CheckGrounded();
+        }
     }
 
     /// <summary>
@@ -99,11 +108,31 @@ public class CharacterController2D : MonoBehaviour
     }
 
     //helper debug method
+
+    #region Temporary Ground check control
+    public void DisableGroundCheck()
+    {
+        isSomethingBelow = false;
+        _disableGroundCheck = true;
+        StartCoroutine(EnableGroundCheck());
+    }
+
+    IEnumerator EnableGroundCheck()
+    {
+        yield return new WaitForSeconds(groundCheckTimer);
+        _disableGroundCheck = false;
+    }
+
+    #endregion
+
+    #region Helper Methods
     private void DrawDebugRays(Vector2 direction, Color color)
     {
-        for(int i = 0; i < _raycastPositions.Length; i++)
+        for (int i = 0; i < _raycastPositions.Length; i++)
         {
-            Debug.DrawRay(_raycastPositions[i] , direction * raycastDistance, color);
+            Debug.DrawRay(_raycastPositions[i], direction * raycastDistance, color);
         }
     }
+
+    #endregion
 }
